@@ -54,7 +54,7 @@ def adipose_iteration(energy, dr):
             energy_list.append([r + remaining_r, energy, energy_deposited])
 
             r += dr
-            
+
         else:
             energy_list += [
                 [r, 0, 0],
@@ -73,8 +73,11 @@ def adipose_iteration(energy, dr):
 
 
 
-out = adipose_iteration(800, .002)
-# out = adipose_iteration(800, 5)
+# out = adipose_iteration(800, .002)
+out = adipose_iteration(800, 1)
+
+# out = adipose_iteration(652, .1)
+# out = adipose_iteration(671, .1)
 
 out.to_csv('PHY4003/dose_depth.csv', index=False)
 
@@ -93,9 +96,9 @@ out.plot(
     style='k'
 )
 
-ax.set_yscale('log')
+# ax.set_yscale('log')
 ax.set_ylim(ymin=0.005)
-ax.set_xlim(xmin=0, xmax=30)
+ax.set_xlim(xmin=0)
 ax.get_legend().remove()
 ax.set_xlabel(
     'Depth (cm)',
