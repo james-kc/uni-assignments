@@ -1,5 +1,5 @@
-import pandas as pd
 from pprint import pprint
+import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -12,12 +12,14 @@ df = pd.read_csv(filename)
 
 
 def plot_single_energy(energy_table):
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(12, 6))
 
-    energy_table['energy_deposited_normalised'] = (
-        energy_table['energy_deposited'] /
-        energy_table['energy_deposited'].max()
+    peak_row = (
+        energy_table
+        .loc[energy_table['energy_deposited_normalised'].idxmax()]
     )
+    peak_x = peak_row['r']
+    peak_y = peak_row['energy_deposited_normalised']
 
     energy_table.plot(
         ax=ax,
@@ -25,6 +27,8 @@ def plot_single_energy(energy_table):
         y='energy_deposited_normalised',
         style='k'
     )
+
+    plt.text(peak_x, peak_y, f'R = {round(peak_x, 2)} cm', ha='right')
 
     # ax.set_yscale('log')
     ax.set_ylim(ymin=0.005)
@@ -65,7 +69,7 @@ def plot_single_energy(energy_table):
 
 
 def plot_multi_energy(energy_table, tumor_start, tumor_end):
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(12, 6))
 
     particle_energy_columns = (
         energy_table
@@ -75,7 +79,7 @@ def plot_multi_energy(energy_table, tumor_start, tumor_end):
 
     energy_deposited_columns = (
         energy_table
-        .filter(regex=r'^energy_deposited_\d+\.\d+_normalised$')
+        .filter(regex=r'^energy_deposited_\d+\.\d+_wintensity_normalised$')
         .columns.tolist()
     )
 
@@ -88,8 +92,6 @@ def plot_multi_energy(energy_table, tumor_start, tumor_end):
             style_str = 'r'
         else:
             style_str = 'k'
-
-        print(col)
 
         energy_table.plot(
             ax=ax,
@@ -198,17 +200,25 @@ def adipose_iteration(energy, dr):
 
             break
 
-    return pd.DataFrame(
+    out = pd.DataFrame(
         energy_list,
         columns=['r', 'particle_energy', 'energy_deposited']
     )
+
+    out['energy_deposited_normalised'] = (
+        out['energy_deposited'] /
+        out['energy_deposited'].max()
+    )
+
+    return out
 
 
 def multi_energy_adipose_interaction(energies, dr, intensities=None):
 
     if not intensities:
         intensities = [1 for i in range(len(energies))]
-
+    
+    intensities.sort(reverse=True)
     energies.sort(reverse=True)
 
     # Initialising table with first energy in list
@@ -230,39 +240,55 @@ def multi_energy_adipose_interaction(energies, dr, intensities=None):
         out[f'particle_energy_{energy}'] = current_energy_cols['particle_energy']
         out[f'energy_deposited_{energy}'] = current_energy_cols['energy_deposited']
 
-    out['cumulative_energy_deposited'] = out[
-        [f'energy_deposited_{energy}' for energy in energies]
-    ].sum(axis=1)
-
     for i, energy in enumerate(energies):
 
-        out[f'energy_deposited_{energy}_normalised'] = (
-            out[f'energy_deposited_{energy}'] * intensities[i] /
-            out['cumulative_energy_deposited'].max()
+        out[f'energy_deposited_{energy}_wintensity'] = (
+            out[f'energy_deposited_{energy}'] * intensities[i]
         )
+
+    out['cumulative_energy_deposited'] = out[
+        [f'energy_deposited_{energy}_wintensity' for energy in energies]
+    ].sum(axis=1)
 
     out[f'cumulative_energy_deposited_normalised'] = (
             out['cumulative_energy_deposited'] /
             out['cumulative_energy_deposited'].max()
         )
 
+    for i, energy in enumerate(energies):
+        out[f'energy_deposited_{energy}_wintensity_normalised'] = (
+            out[f'energy_deposited_{energy}_wintensity'] /
+            out['cumulative_energy_deposited'].max()
+        )
+
     return out
 
 
+#################
+# Single Energy #
+#################
 
 # out = adipose_iteration(800, .002)
-# out = adipose_iteration(800, 1)
+out = adipose_iteration(800, .1)
+
+plot_single_energy(out)
+
+################
+# Multi Energy #
+################
 
 # out = adipose_iteration(652, .1)
 # out = adipose_iteration(671, .1)
 
-# out = multi_energy_adipose_interaction([652, 671], .1)
-out = multi_energy_adipose_interaction(
-    np.linspace(652, 671, 5).tolist(),
-    .1,
-    intensities=[1, 100/85, 100/75, 100/55, 100/4]
-)
+# plot_single_energy(out)
+
+# out = multi_energy_adipose_interaction(
+#     np.linspace(652, 671, 5).tolist(),
+#     .1,
+#     intensities=[1, 1.136, 1.299, 2.273, 4.167]
+#     # intensities=[1, 100/88, 100/77, 100/44, 100/24]
+# )
+
+# plot_multi_energy(out, 19.5, 20.5)
 
 out.to_csv('PHY4003/dose_depth.csv', index=False)
-
-plot_multi_energy(out, 19.5, 20.5)
