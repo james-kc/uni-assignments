@@ -30,7 +30,7 @@ def plot_single_energy(energy_table):
 
     plt.text(peak_x, peak_y, f'R = {round(peak_x, 2)} cm', ha='right')
 
-    # ax.set_yscale('log')
+    ax.set_yscale('log')
     ax.set_ylim(ymin=0.005)
     ax.set_xlim(xmin=0)
     ax.get_legend().remove()
@@ -268,10 +268,10 @@ def multi_energy_adipose_interaction(energies, dr, intensities=None):
 # Single Energy #
 #################
 
-# out = adipose_iteration(800, .002)
+out = adipose_iteration(800, .002)
 # out = adipose_iteration(800, .1)
 
-# plot_single_energy(out)
+plot_single_energy(out)
 
 ################
 # Multi Energy #
@@ -285,15 +285,15 @@ def multi_energy_adipose_interaction(energies, dr, intensities=None):
 
 # plot_single_energy(out)
 
-out = multi_energy_adipose_interaction(
-    np.linspace(652, 671, 5).tolist(),
-    # np.linspace(632, 667, 5).tolist(),
-    .1,
-    # .5,
-    # intensities=[1, 1.136, 1.299, 2.273, 4.167]
-    # intensities=[1, 100/88, 100/77, 100/44, 100/24]
-)
+# out = multi_energy_adipose_interaction(
+#     np.linspace(652, 671, 5).tolist(),
+#     # np.linspace(632, 667, 5).tolist(),
+#     .1,
+#     # .5,
+#     # intensities=[1, 1.136, 1.299, 2.273, 4.167]
+#     # intensities=[1, 100/88, 100/77, 100/44, 100/24]
+# )
 
-plot_multi_energy(out, 19.5, 20.5)
+# plot_multi_energy(out, 19.5, 20.5)
 
 out.to_csv('PHY4003/dose_depth.csv', index=False)
