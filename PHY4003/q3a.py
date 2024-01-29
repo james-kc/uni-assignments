@@ -269,9 +269,9 @@ def multi_energy_adipose_interaction(energies, dr, intensities=None):
 #################
 
 # out = adipose_iteration(800, .002)
-out = adipose_iteration(800, .1)
+# out = adipose_iteration(800, .1)
 
-plot_single_energy(out)
+# plot_single_energy(out)
 
 ################
 # Multi Energy #
@@ -280,15 +280,20 @@ plot_single_energy(out)
 # out = adipose_iteration(652, .1)
 # out = adipose_iteration(671, .1)
 
+# out = adipose_iteration(632, 0.5)
+# out = adipose_iteration(667, 0.5)
+
 # plot_single_energy(out)
 
-# out = multi_energy_adipose_interaction(
-#     np.linspace(652, 671, 5).tolist(),
-#     .1,
-#     intensities=[1, 1.136, 1.299, 2.273, 4.167]
-#     # intensities=[1, 100/88, 100/77, 100/44, 100/24]
-# )
+out = multi_energy_adipose_interaction(
+    np.linspace(652, 671, 5).tolist(),
+    # np.linspace(632, 667, 5).tolist(),
+    .1,
+    # .5,
+    # intensities=[1, 1.136, 1.299, 2.273, 4.167]
+    # intensities=[1, 100/88, 100/77, 100/44, 100/24]
+)
 
-# plot_multi_energy(out, 19.5, 20.5)
+plot_multi_energy(out, 19.5, 20.5)
 
 out.to_csv('PHY4003/dose_depth.csv', index=False)
