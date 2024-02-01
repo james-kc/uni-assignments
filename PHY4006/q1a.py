@@ -78,7 +78,7 @@ def plot_luminosity(df):
     ax.errorbar(
         x=df.photon_energy,
         y=df.luminosity,
-        yerr=df.flux * 4 * const.pi * distance * 0.2,
+        yerr=df.flux * 4 * const.pi * distance**2 * 0.2,
         color='k',
         label='Cluster 3, 101 Mpc'
     )
@@ -130,16 +130,15 @@ def plot_luminosity_fit(df):
     _, ax = plt.subplots(figsize=(12, 6))
 
     ax.errorbar(
-        x=df.photon_energy,
-        y=np.log(df.flux),
-        # yerr=df.flux * 4 * const.pi * distance * 0.2,
-        yerr=(df.flux * 0.2) / df.flux,
+        x=df.frequency,
+        y=np.log(df.luminosity),
+        yerr=(df.flux**-1) * (0.2 * df.flux),
         color='k',
         label='Cluster 3, 101 Mpc'
     )
 
     ax.plot(
-        df.photon_energy,
+        df.frequency,
         df.fit,
         color='r',
         linestyle='--',
@@ -149,11 +148,11 @@ def plot_luminosity_fit(df):
     plt.legend()
 
     ax.set_xlabel(
-        'Photon Energy (keV)',
+        'Photon Frequency, $\\nu$ (Hz)',
         fontsize=20
     )
     ax.set_ylabel(
-        'Luminosity (J/s/Hz)',
+        'Log Luminosity (J/s/Hz)',
         fontsize=20
     )
     ax.tick_params(
@@ -219,12 +218,15 @@ def power_law(E, T):
     return curve / curve.max()
 
 
-# def straight_line(x, m, c):
-#     return m * x + c
+def straight_line(x, m, c):
+    return m * x + c
 
+
+# filename = 'PHY4006/cluster_2.csv'
+# distance = 91 * 1e6 * const.parsec # Mpc (cluster_2)
 
 filename = 'PHY4006/cluster_3.csv'
-distance = 101 * 1e6 * const.parsec # Mpc
+distance = 101 * 1e6 * const.parsec # Mpc (cluster_3)
 
 df = pd.read_csv(filename)
 
@@ -237,36 +239,22 @@ df = pd.read_csv(filename)
 # Gaunt factor ~ 1
 '''
 
-# df['luminosity'] = df.flux * 4 * const.pi * distance
-df['relative_flux'] = df.flux / df.flux.max()
+df['luminosity'] = df.flux * 4 * const.pi * distance**2
+df['frequency'] = (df.photon_energy * 1e3 * const.e) / const.h
 
-# plot_flux(df)
-# plot_luminosity(df)
-
-# popt, pcov = curve_fit(
-#     power_law,
-#     df.photon_energy,
-#     df.relative_flux,
-#     bounds=(0, 1e8)
-# )
-
-# df['fit'] = power_law(df.photon_energy, *popt)
-# print(popt)
-
-# plot_luminosity_fit(df)
-
-df['fit'] = power_law(df.photon_energy, 5.5e6)
-
-plt.plot(
-    df.photon_energy,
-    df.fit,
-    'r--'
+popt, pcov = curve_fit(
+    straight_line,
+    df.frequency,
+    np.log(df.luminosity)
 )
 
-plt.plot(
-    df.photon_energy,
-    df.relative_flux,
-    'k'
-)
+print(popt)
 
-plt.show()
+grad = popt[0]
+temperature = - const.h / (const.k * grad)
+
+print(f"Temperature = {temperature:.2E} K")
+
+df['fit'] = straight_line(df.frequency, *popt)
+
+plot_luminosity_fit(df)
