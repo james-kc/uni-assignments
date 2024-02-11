@@ -57,7 +57,7 @@ def plot_flux(df):
     )
 
     plt.savefig(
-        f'PHY4006/flux_curve.png',
+        f'PHY4006/flux_curve_q1a.png',
         dpi=300,
         bbox_inches='tight'
     )
@@ -111,7 +111,7 @@ def plot_luminosity(df):
     )
 
     plt.savefig(
-        f'PHY4006/flux_curve.png',
+        f'PHY4006/flux_curve_q1a.png',
         dpi=300,
         bbox_inches='tight'
     )
@@ -173,7 +173,7 @@ def plot_luminosity_fit(df):
     )
 
     plt.savefig(
-        f'PHY4006/flux_curve.png',
+        f'PHY4006/flux_curve_q1a.png',
         dpi=300,
         bbox_inches='tight'
     )
@@ -221,9 +221,6 @@ def power_law(E, T):
 def straight_line(x, m, c):
     return m * x + c
 
-
-# filename = 'PHY4006/cluster_2.csv'
-# distance = 91 * 1e6 * const.parsec # Mpc (cluster_2)
 
 filename = 'PHY4006/cluster_3.csv'
 distance = 101 * 1e6 * const.parsec # Mpc (cluster_3)
