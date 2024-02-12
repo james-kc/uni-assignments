@@ -72,11 +72,17 @@ def flux_fit_plotter(df, t_cutoff, nt_cutoff):
     df.plot(
         ax=ax,
         x='energy',
-        y='fit'
+        y='fit',
+        style='r--'
+    )
+
+    ax.set_xlabel(
+        'Energy (keV)',
+        fontsize=20
     )
 
     plt.savefig(
-        f'PHY4006/flux_curve_fit_q2b.png',
+        f'PHY4006/flux_curve_q2b_fit.png',
         dpi=300,
         bbox_inches='tight'
     )
@@ -103,7 +109,7 @@ energy (keV)
 photon_flux (ph/s/cm^2/keV)
 '''
 
-thermal_cutoff = 19
+thermal_cutoff = 19 # E_c
 nonthermal_cutoff = 160
 
 nonthermal_spectra_mask = (
