@@ -50,10 +50,10 @@ plt.xscale('log')
 plt.yscale('log')
 
 # Labels and legend
-plt.title(
-    'Log-Log Plot of $n_e$ vs $k_BT$ with Lines of Constant $λ_D$ and $N_D$',
-    fontsize=20
-)
+# plt.title(
+#     'Log-Log Plot of $n_e$ vs $k_BT$ with Lines of Constant $λ_D$ and $N_D$',
+#     fontsize=20
+# )
 ax.set_xlabel(
     '$k_BT$ (eV)',
     fontsize=20
