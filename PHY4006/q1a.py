@@ -92,6 +92,12 @@ def plot_flux_fit(df):
 
     plt.legend()
 
+    plt.savefig(
+        f'PHY4006/flux_curve_fit_q1a.png',
+        dpi=300,
+        bbox_inches='tight'
+    )
+
     return ax
 
 
