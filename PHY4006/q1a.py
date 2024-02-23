@@ -120,6 +120,7 @@ df = pd.read_csv(filename)
 '''
 
 df['frequency'] = (df.photon_energy * 1e3 * const.e) / const.h
+df['luminosity'] = 4 * const.pi * distance**2 * df.flux
 
 popt, pcov = curve_fit(
     straight_line,
@@ -139,3 +140,12 @@ df['fit'] = np.exp(straight_line(df.frequency, *popt))
 
 plot_flux_fit(df)
 plt.show()
+
+popt, pcov = curve_fit(
+    straight_line,
+    df.frequency,
+    np.log(df.luminosity),
+    sigma=(df.flux**-1) * (0.2 * df.flux)
+)
+
+print(popt)
