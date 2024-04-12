@@ -141,6 +141,7 @@ df['fit'] = np.exp(straight_line(df.frequency, *popt))
 plot_flux_fit(df)
 plt.show()
 
+# Luminosity fit:
 popt, pcov = curve_fit(
     straight_line,
     df.frequency,
