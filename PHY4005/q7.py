@@ -1,6 +1,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from astropy.timeseries import LombScargle
+from scipy.optimize import curve_fit
+
 
 
 plt.rcParams["font.family"] = "Consolas"
@@ -30,6 +32,14 @@ data_uncertainties = {
     'Boblins_star_RVs': Boblins_star_RVs_uncertainties,
     'Watsons_star_BIS': Watsons_star_BIS_uncertainties,
     'Watsons_star_RVs': Watsons_star_RVs_uncertainties
+}
+
+data_periods = {
+    # 'Boblins_star_BIS': 2.42, # Actual: 2.42 - not correct, coppied from RV
+    'Boblins_star_BIS': 27.23, # Actual: 2.42 - not correct, coppied from RV
+    'Boblins_star_RVs': 27.23,
+    'Watsons_star_BIS': 24.78,
+    'Watsons_star_RVs': 24.87
 }
 
 def my_plot(x, y, x_label, y_label, filename):
@@ -71,6 +81,11 @@ def my_plot(x, y, x_label, y_label, filename):
 
     plt.show()
 
+
+# Sine wave
+def sinusoidal(t, A, f, phi, c):
+    return A * np.sin(2 * np.pi * f * t + phi) + c
+
 for data in data_files:
 
     my_plot(
@@ -85,13 +100,30 @@ for data in data_files:
     # dominated by data gaps and the baseline of the data themselves.
     max_period = 50  # in days
     min_frequency = 1.0 / max_period
+    min_period = 1.5  # in days
+    max_frequency = 1.0 / min_period
 
     # Generalised Lomb Scargle periodogram
     frequency, power = LombScargle(
         Observing_times,
         data_files[data],
         dy=data_uncertainties[data]
-    ).autopower(minimum_frequency=min_frequency)
+    ).autopower(
+        maximum_frequency=max_frequency,
+        minimum_frequency=min_frequency,
+        samples_per_peak=1000
+    )
+
+    # Find the index of the maximum power
+    max_power_index = np.argmax(power)
+
+    # Get the corresponding frequency
+    frequency_at_max_power = frequency[max_power_index]
+
+    # Calculate the period from the frequency
+    period_at_max_power = 1 / frequency_at_max_power
+
+    print(f"{data}_GLS\t{period_at_max_power} days")
 
     my_plot(
         1 / frequency,
@@ -100,3 +132,108 @@ for data in data_files:
         "GLS Power",
         f'PHY4005/plots/{data}_GLS.png'
     )
+
+
+
+    # Using periods obtained from periodograms
+    period = data_periods[data]
+
+    # Initial guess for the parameters of the sinusoidal function
+    A_guess = (max(data_files[data]) - min(data_files[data])) / 2
+    phi_guess = 0  # Initial phase guess
+    c_guess = np.mean(data_files[data])
+
+    # Use curve_fit to fit the sinusoidal function to the data
+    popt, pcov = curve_fit(
+        sinusoidal,
+        Observing_times,
+        data_files[data],
+        sigma=data_uncertainties[data],
+        p0=[
+            A_guess,
+            1/period,
+            phi_guess,
+            c_guess
+        ]
+    )
+
+    # Plot the original data and the fitted sinusoidal curve
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.errorbar(
+        Observing_times,
+        data_files[data],
+        yerr=data_uncertainties[data],
+        fmt='o',
+        label='Original Data',
+        color='blue'
+    )
+    ax.plot(
+        Observing_times,
+        sinusoidal(Observing_times, *popt),
+        label='Fitted Curve',
+        color='red'
+    )
+
+    ax.set_xlabel(
+        'Time',
+        fontsize=20
+    )
+    ax.set_ylabel(
+        'Radial Velocity',
+        fontsize=20
+    )
+    ax.tick_params(
+        axis='x',
+        labelsize=13,
+        rotation=0,
+        direction='in',
+        top=True,
+        labelbottom=True
+    )
+    ax.tick_params(
+        axis='y',
+        labelsize=13,
+        which='both',
+        direction='in',
+        right=True,
+        labelbottom=True
+    )
+
+    ax.legend()
+
+    plt.savefig(
+        f'PHY4005/plots/{data}_best_fit.png',
+        dpi=300,
+        bbox_inches='tight'
+    )
+
+    plt.show()
+
+    # Print the parameters of the fitted sinusoidal curve
+    print("Amplitude (A):", popt[0])
+    print("Frequency (f):", popt[1])
+    print("Phase (phi):", popt[2])
+    print("Constant (c):", popt[3])
+    print()
+
+    # Calculate the phase of each observation
+    phase = (Observing_times / period) % 1  # Phase-fold the observations
+
+    # Sort the observations by phase
+    sorted_indices = np.argsort(phase)
+    phase_sorted = phase[sorted_indices]
+    data_sorted = data_files[data][sorted_indices]
+
+    # Plot the phase-folded data points
+    plt.figure(figsize=(10, 5))
+    plt.errorbar(phase_sorted, data_sorted, yerr=data_uncertainties[data][sorted_indices], fmt='o', label='Phase-folded Data Points', color='blue')
+
+    # Plot the best-fitting model over the phase-folded data
+    plt.plot(phase_sorted, sinusoidal(Observing_times[sorted_indices], *popt), label='Best-fitting Model', color='red')
+
+    plt.xlabel('Phase')
+    plt.ylabel('Radial Velocity')
+    plt.title('Phase-folded Data and Best-fitting Model')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
