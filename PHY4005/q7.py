@@ -42,6 +42,66 @@ data_periods = {
     'Watsons_star_RVs': 24.87
 }
 
+def my_uncertainties_plot(
+        x,
+        y,
+        y_uncertainties,
+        x_label,
+        y_label,
+        label,
+        filename=None
+):
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    ax.errorbar(
+        x,
+        y,
+        yerr=y_uncertainties,
+        label=label,
+        fmt='o',
+        color='blue'
+    )
+
+    ax.set_xlabel(
+        x_label,
+        fontsize=20
+    )
+    ax.set_ylabel(
+        y_label,
+        fontsize=20
+    )
+    ax.tick_params(
+        axis='x',
+        labelsize=13,
+        rotation=0,
+        direction='in',
+        top=True,
+        labelbottom=True
+    )
+    ax.tick_params(
+        axis='y',
+        labelsize=13,
+        which='both',
+        direction='in',
+        right=True,
+        labelbottom=True
+    )
+
+    ax.legend()
+
+    if filename:
+        plt.savefig(
+            filename,
+            dpi=300,
+            bbox_inches='tight'
+        )
+
+        plt.show()
+
+    else:
+        return ax
+
+
 def my_plot(x, y, x_label, y_label, filename):
 
     fig, ax = plt.subplots(figsize=(12, 6))
@@ -88,11 +148,13 @@ def sinusoidal(t, A, f, phi, c):
 
 for data in data_files:
 
-    my_plot(
+    ax = my_uncertainties_plot(
         Observing_times,
         data_files[data],
+        data_uncertainties[data],
         "Time (days)",
         "Velocity ($ms^{-1}$)",
+        'Original Data',
         f'PHY4005/plots/{data}.png'
     )
 
@@ -133,8 +195,6 @@ for data in data_files:
         f'PHY4005/plots/{data}_GLS.png'
     )
 
-
-
     # Using periods obtained from periodograms
     period = data_periods[data]
 
@@ -158,45 +218,20 @@ for data in data_files:
     )
 
     # Plot the original data and the fitted sinusoidal curve
-    fig, ax = plt.subplots(figsize=(12, 6))
-    ax.errorbar(
+    ax = my_uncertainties_plot(
         Observing_times,
         data_files[data],
-        yerr=data_uncertainties[data],
-        fmt='o',
-        label='Original Data',
-        color='blue'
+        data_uncertainties[data],
+        'Time',
+        'Radial Velocity',
+        'Original Data'
     )
+    
     ax.plot(
         Observing_times,
         sinusoidal(Observing_times, *popt),
         label='Fitted Curve',
         color='red'
-    )
-
-    ax.set_xlabel(
-        'Time',
-        fontsize=20
-    )
-    ax.set_ylabel(
-        'Radial Velocity',
-        fontsize=20
-    )
-    ax.tick_params(
-        axis='x',
-        labelsize=13,
-        rotation=0,
-        direction='in',
-        top=True,
-        labelbottom=True
-    )
-    ax.tick_params(
-        axis='y',
-        labelsize=13,
-        which='both',
-        direction='in',
-        right=True,
-        labelbottom=True
     )
 
     ax.legend()
@@ -225,15 +260,25 @@ for data in data_files:
     data_sorted = data_files[data][sorted_indices]
 
     # Plot the phase-folded data points
-    plt.figure(figsize=(10, 5))
-    plt.errorbar(phase_sorted, data_sorted, yerr=data_uncertainties[data][sorted_indices], fmt='o', label='Phase-folded Data Points', color='blue')
+
+    ax = my_uncertainties_plot(
+        phase_sorted,
+        data_sorted,
+        data_uncertainties[data][sorted_indices],
+        'Phase',
+        'Radial Velocity',
+        'Phase-folded Data Points'
+    )
 
     # Plot the best-fitting model over the phase-folded data
-    plt.plot(phase_sorted, sinusoidal(Observing_times[sorted_indices], *popt), label='Best-fitting Model', color='red')
+    ax.plot(phase_sorted, sinusoidal(Observing_times[sorted_indices], *popt), label='Best-fitting Model', color='red')
 
-    plt.xlabel('Phase')
-    plt.ylabel('Radial Velocity')
-    plt.title('Phase-folded Data and Best-fitting Model')
-    plt.legend()
-    plt.grid(True)
+    ax.legend()
+
+    plt.savefig(
+        f'PHY4005/plots/{data}_phase-folded.png',
+        dpi=300,
+        bbox_inches='tight'
+    )
+
     plt.show()
