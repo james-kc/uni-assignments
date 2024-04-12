@@ -32,23 +32,18 @@ data_uncertainties = {
     'Watsons_star_RVs': Watsons_star_RVs_uncertainties
 }
 
+def my_plot(x, y, x_label, y_label, filename):
 
-
-for data in data_files:
     fig, ax = plt.subplots(figsize=(12, 6))
 
-    ax.plot(
-        Observing_times,
-        data_files[data],
-        'k'
-    )
+    ax.plot(x, y, 'k')
 
     ax.set_xlabel(
-        'Depth (cm)',
+        x_label,
         fontsize=20
     )
     ax.set_ylabel(
-        'Relative Dose',
+        y_label,
         fontsize=20
     )
     ax.tick_params(
@@ -69,28 +64,39 @@ for data in data_files:
     )
 
     plt.savefig(
-        f'PHY4005/plots/{data}.png',
+        filename,
         dpi=300,
         bbox_inches='tight'
     )
 
     plt.show()
 
+for data in data_files:
+
+    my_plot(
+        Observing_times,
+        data_files[data],
+        "Time (days)",
+        "Velocity ($ms^{-1}$)",
+        f'PHY4005/plots/{data}.png'
+    )
+
     # Do not search for periods greater than 50 days since features will be
     # dominated by data gaps and the baseline of the data themselves.
     max_period = 50  # in days
     min_frequency = 1.0 / max_period
 
+    # Generalised Lomb Scargle periodogram
     frequency, power = LombScargle(
         Observing_times,
         data_files[data],
         dy=data_uncertainties[data]
     ).autopower(minimum_frequency=min_frequency)
 
-    plt.figure(figsize=(10, 5))
-    plt.plot(1 / frequency, power)  # Convert frequency to period
-    plt.xlabel('Period')
-    plt.ylabel('GLS Power')
-    plt.title('Generalized Lomb-Scargle Periodogram')
-    plt.grid(True)
-    plt.show()
+    my_plot(
+        1 / frequency,
+        power,
+        "Period",
+        "GLS Power",
+        f'PHY4005/plots/{data}_GLS.png'
+    )
